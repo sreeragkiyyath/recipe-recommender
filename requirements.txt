@@ -1,0 +1,4 @@
+# Only needed for the Flask API layer (app.py).
+# recommender.py, data_prep.py, build_model.py, and cli.py are pure
+# standard library and need nothing installed.
+flask
