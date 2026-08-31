@@ -28,6 +28,15 @@ _state_lock = threading.Lock()
 _state = {"recipes": None, "idf": None, "doc_vectors": None}
 
 
+@app.after_request
+def _allow_cors(response):
+    # Lets the standalone frontend (opened via file://) call this API.
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    return response
+
+
 def _load_state():
     recipes = load_recipes()
     try:
