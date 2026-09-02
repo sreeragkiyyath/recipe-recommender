@@ -22,3 +22,8 @@ ENV/
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Raw pretrained word-vectors download (large, external) — only the small
+# filtered data/word_vectors.json built from it is a project artifact.
+data/glove*.txt
+data/glove*.zip

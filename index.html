@@ -202,6 +202,84 @@
     font-size: 0.85rem;
   }
 
+  /* Add-a-recipe form: larger text and touch targets for easier use */
+  .form-field { margin-bottom: 24px; }
+  .form-label {
+    display: block;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .form-input {
+    width: 100%;
+    font-size: 1.15rem;
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+  }
+  .form-input:focus {
+    outline: 3px solid #94c8ff;
+    border-color: #4a90e2;
+  }
+  .ingredient-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .ingredient-row .form-input { flex: 1; }
+  .remove-ingredient-btn {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    font-size: 1.4rem;
+    line-height: 1;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    color: #9c2f2a;
+  }
+  .remove-ingredient-btn:hover { background: #fdecea; }
+  .add-ingredient-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 28px;
+  }
+  .add-ingredient-btn:hover { border-color: var(--muted); background: var(--pill-bg); }
+  .save-recipe-btn {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .save-recipe-btn:hover { opacity: 0.85; }
+  .save-confirmation {
+    display: none;
+    margin-top: 20px;
+    padding: 16px 18px;
+    border-radius: 8px;
+    background: #eaf7ec;
+    color: #2f7d32;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
   .error-box {
     margin-top: 20px;
     padding: 12px 16px;
@@ -227,6 +305,7 @@
     <div class="tabs">
       <div class="tab active" data-tab="ingredients">By Ingredients</div>
       <div class="tab" data-tab="photo">By Photo</div>
+      <div class="tab" data-tab="add-recipe">Add a Recipe</div>
     </div>
 
     <div class="panel active" id="panel-ingredients">
@@ -253,6 +332,25 @@
         <img id="imagePreview" alt="Uploaded ingredients preview">
         <p class="placeholder-note">Image received. Recipe suggestions from photos are coming soon — this will be wired up to a backend later.</p>
       </div>
+    </div>
+
+    <div class="panel" id="panel-add-recipe">
+      <p class="section-label">Share one of your own recipes</p>
+      <form id="addRecipeForm">
+        <div class="form-field">
+          <label class="form-label" for="recipeNameInput">Recipe Name</label>
+          <input class="form-input" type="text" id="recipeNameInput" placeholder="For example: Grandma's Chicken Soup" autocomplete="off">
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Ingredients</label>
+          <div id="ingredientRows"></div>
+          <button type="button" class="add-ingredient-btn" id="addIngredientBtn">+ Add Another Ingredient</button>
+        </div>
+
+        <button type="submit" class="save-recipe-btn">Save Recipe</button>
+        <p class="save-confirmation" id="saveConfirmation">Recipe saved. Thank you for sharing!</p>
+      </form>
     </div>
   </div>
 
@@ -414,6 +512,75 @@
     };
     reader.readAsDataURL(file);
   }
+
+  const ingredientRows = document.getElementById("ingredientRows");
+  const addIngredientBtn = document.getElementById("addIngredientBtn");
+  const addRecipeForm = document.getElementById("addRecipeForm");
+  const recipeNameInput = document.getElementById("recipeNameInput");
+  const saveConfirmation = document.getElementById("saveConfirmation");
+
+  function addIngredientRow(focus) {
+    const row = document.createElement("div");
+    row.className = "ingredient-row";
+
+    const input = document.createElement("input");
+    input.className = "form-input";
+    input.type = "text";
+    input.placeholder = "For example: 2 eggs";
+    input.autocomplete = "off";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "remove-ingredient-btn";
+    removeBtn.setAttribute("aria-label", "Remove this ingredient");
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => {
+      if (ingredientRows.children.length > 1) {
+        row.remove();
+      } else {
+        input.value = "";
+      }
+    });
+
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    ingredientRows.appendChild(row);
+    if (focus) input.focus();
+  }
+
+  function resetAddRecipeForm() {
+    recipeNameInput.value = "";
+    ingredientRows.innerHTML = "";
+    addIngredientRow(false);
+    addIngredientRow(false);
+    addIngredientRow(false);
+  }
+
+  addIngredientBtn.addEventListener("click", () => addIngredientRow(true));
+  resetAddRecipeForm();
+
+  addRecipeForm.addEventListener("submit", e => {
+    e.preventDefault();
+    const name = recipeNameInput.value.trim();
+    const ingredientInputs = Array.from(ingredientRows.querySelectorAll(".form-input"));
+    const ingredients = ingredientInputs.map(i => i.value.trim()).filter(Boolean);
+
+    if (!name) {
+      saveConfirmation.style.display = "none";
+      recipeNameInput.focus();
+      return;
+    }
+    if (ingredients.length === 0) {
+      saveConfirmation.style.display = "none";
+      ingredientInputs[0].focus();
+      return;
+    }
+
+    // Backend for saving recipes isn't built yet — this just confirms receipt for now.
+    saveConfirmation.style.display = "block";
+    resetAddRecipeForm();
+    recipeNameInput.focus();
+  });
 </script>
 </body>
 </html>
